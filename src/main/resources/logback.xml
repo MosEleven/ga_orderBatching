@@ -20,7 +20,11 @@
         <triggeringPolicy class="common.EverytimeTriggeringPolicy">
         </triggeringPolicy>
     </appender>
+
     <appender name="SPECIAL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
         <encoder>
             <pattern>%msg%n</pattern>
             <charset>utf-8</charset>

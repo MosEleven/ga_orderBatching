@@ -1,5 +1,6 @@
 package service;
 
+import common.CommonUtil;
 import entity.*;
 import ga.GaCalculate;
 
@@ -19,7 +20,6 @@ import static service.BaseInfo.*;
 public class CalFitnessService implements GaCalculate<Order> {
 
     //小数输出格式，精确到小数点后2位
-    private final DecimalFormat df = new DecimalFormat("####.00");
 
     @Override
     public boolean checkData(List<Order> dataList) {
@@ -74,7 +74,7 @@ public class CalFitnessService implements GaCalculate<Order> {
             base += batch.getAreaList().stream().mapToDouble(a->Math.abs(average-a.getTService())).reduce(0d,Double::sum);
         }
 
-        System.out.printf("拣选时间：%s，延迟时间：%s，差异时间：%s%n",df.format(tTotalService),df.format(tTotalDelay),df.format(base));
+        System.out.printf("拣选时间：%s，延迟时间：%s，差异时间：%s%n", CommonUtil.df.format(tTotalService),CommonUtil.df.format(tTotalDelay),CommonUtil.df.format(base));
     }
 
     /**
@@ -173,6 +173,7 @@ public class CalFitnessService implements GaCalculate<Order> {
                 int tunnel = position.getTunnel();
                 if (tunnel >= area.getMaxTunnelNo()){
                     int shelf = position.getShelf();
+                    shelf = (shelf+1)/2;
                     if (shelf > area.getFarthestShelf()){
                         area.setFarthestShelf(shelf);
                     }
@@ -202,6 +203,15 @@ public class CalFitnessService implements GaCalculate<Order> {
      * @param area 分取拣选信息
      */
     private void calAreaTTravel(Area area){
+        double distance = calDistanceByS(area);
+        area.setTTravel(distance / V_TRAVEL);
+    }
+
+    public double getBestRoute(Area area){
+        return Math.min(calDistanceByS(area), calDistanceBySPlus(area));
+    }
+
+    public double calDistanceByS(Area area){
         int pickedTunnelNum = area.getPickedTunnelNum();
         double distance;
         if (pickedTunnelNum%2 == 0){
@@ -209,7 +219,44 @@ public class CalFitnessService implements GaCalculate<Order> {
         }else {
             distance = TUNNEL_WIDTH *area.getMaxTunnelNo()*2 + (pickedTunnelNum - 1)* TUNNEL_LENGTH + 2* SHELF_LENGTH *area.getFarthestShelf();
         }
-        area.setTTravel(distance / V_TRAVEL);
+        return distance;
+    }
+
+    /**
+     * 使用改进S路线计算
+     * @param area
+     * @return
+     */
+    public double calDistanceBySPlus(Area area){
+        List<OrderDetail> detailList = area.getDetailList();
+        int[][] ts = new int[TUNNEL_NUM][2];
+        for (OrderDetail detail : detailList) {
+            Position position = detail.getPosition();
+            int tunnel = position.getTunnel();
+            int shelf = (position.getShelf()+1)/2;
+            ts[tunnel][0] = CommonUtil.minExceptZero(ts[tunnel][0],shelf);
+            ts[tunnel][1] = CommonUtil.maxExceptZero(ts[tunnel][1],shelf);
+        }
+        int maxTunnelNo = area.getMaxTunnelNo();
+        ts[maxTunnelNo][1] = ts[maxTunnelNo][0];
+        int point = 0;
+        int top = SHELF_NUM / 2;
+        int distance = 0;
+        for (int[] tunnel : ts) {
+            if (tunnel[0]!=0){
+                int up = 2*top - point - tunnel[0];
+                int down = point + tunnel[1];
+                if (up < down){
+                    point = tunnel[0];
+                    distance += up;
+                }else {
+                    point = tunnel[1];
+                    distance += down;
+                }
+            }
+        }
+        distance += ts[maxTunnelNo][0];
+        return distance* SHELF_LENGTH + 2* maxTunnelNo *TUNNEL_WIDTH;
     }
 
     /**

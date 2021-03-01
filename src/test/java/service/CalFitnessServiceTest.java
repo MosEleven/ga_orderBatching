@@ -1,14 +1,18 @@
 package service;
 
 import com.alibaba.fastjson.JSON;
+import entity.Area;
 import entity.Order;
+import entity.OrderDetail;
 import entity.Position;
 import org.junit.jupiter.api.Test;
 
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -67,5 +71,26 @@ class CalFitnessServiceTest {
         BigDecimal b = BigDecimal.valueOf(2);
         BigDecimal c = a.pow(2);
         System.out.println(c);
+    }
+
+    @Test
+    void getBestRoute(){
+        List<OrderDetail> list = new ArrayList<>(4);
+        list.add(OrderDetail.builder().position(Position.builder().tunnel(0).shelf(8).build()).build());
+        list.add(OrderDetail.builder().position(Position.builder().tunnel(1).shelf(8).build()).build());
+        list.add(OrderDetail.builder().position(Position.builder().tunnel(1).shelf(16).build()).build());
+        list.add(OrderDetail.builder().position(Position.builder().tunnel(2).shelf(6).build()).build());
+        Area area = new Area();
+        area.setFarthestShelf(3);
+        area.setMaxTunnelNo(2);
+        Set<Integer> set = new HashSet<>(3);
+        set.add(0);set.add(1);set.add(2);
+        area.setPickedTunnelSet(set);
+        area.setDetailList(list);
+        CalFitnessService cs = new CalFitnessService();
+        double s = cs.calDistanceByS(area);
+        double sp = cs.calDistanceBySPlus(area);
+        System.out.printf("s = %s; sp = %s",s,sp);
+
     }
 }

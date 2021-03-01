@@ -62,11 +62,11 @@ public class GeneAlgorithm<T> {
         System.out.printf("遗传算法构建，迭代次数为%s%n",iterationNum);
     }
 
-    public void loadData(List<T> orderList){
+    public void loadData(List<T> dataList){
         System.out.println("遗传算法加载数据...");
-        this.dataList = orderList;
+        this.dataList = dataList;
         //订单总量
-        this.genesLength = orderList.size();
+        this.genesLength = dataList.size();
         //初始化基因顺序
         this.geneSequence = new int[genesLength];
         for (int i = 0; i < genesLength; i++) {
@@ -76,24 +76,28 @@ public class GeneAlgorithm<T> {
 
     //遗传算法入口
     public List<T> ga(){
-        System.out.println("遗传算法开始执行...");
+        System.out.printf("遗传算法开始执行...订单数量：%s%n",dataList.size());
         if (gaCalculate.checkData(dataList)){
             init();
             fitnessAndSort();
             for (int i = 0; i < iterationNum; i++) {
                 generating();
-                //deBugPrint(i);
             }
+            //deBugPrint();
             return population.get(populationSize-1).getListFromGenes(dataList);
         }
+        System.out.println("没有进入遗传系统");
         return dataList;
     }
 
-    private void deBugPrint(int rounds){
-        List<T> list = population.get(populationSize - 1).getListFromGenes(dataList);
+    private void deBugPrint(){
         Chromosome bestC = population.get(populationSize - 1);
-        System.out.printf("round %s; best score is %s; ",rounds,bestC.getScore());
+        List<T> list = bestC.getListFromGenes(dataList);
+        //System.out.printf("GA：best score is %s; ",bestC.getScore());
+        System.out.print("GA：");
         gaCalculate.debug(list);
+        System.out.print("FIFO：");
+        gaCalculate.debug(dataList);
     }
 
     //初始化族群
@@ -212,11 +216,10 @@ public class GeneAlgorithm<T> {
 
     //根据排名轮盘赌
     private List<Chromosome> rankRoulette(){
-        Random random = new Random();
         List<Chromosome> selected = new ArrayList<>(populationSize);
         int total = populationSize * (populationSize + 1) / 2;
         for (int i = 0; i < populationSize; i++) {
-            int n = selectTable[random.nextInt(total)];
+            int n = selectTable[CommonUtil.random.nextInt(total)];
             selected.add(population.get(n));
         }
         return selected;

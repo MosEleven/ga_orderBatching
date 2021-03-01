@@ -32,7 +32,7 @@ public class ReceiveOrderService {
     public ReceiveOrderService() {
         this.receivingRate = 0.025d;
         this.maxOrderNum = 50;
-        this.minOrderNum = 10;
+        this.minOrderNum = 30;
         this.maxDetailNum = 100;
         this.waveNo = 0;
         this.tNextOrder = getTNextOrder();
@@ -104,7 +104,6 @@ public class ReceiveOrderService {
             return false;
         }
         //没超时 订单均未达上限 但时间已达到预计下一批次时间
-        //todo 同时两种订单会刷新预期时间
         else if (tReceiving.compareTo(tExceptedNextWave) >= 0){
             boolean added = false;
             if (singleOrders.size()>=minOrderNum){

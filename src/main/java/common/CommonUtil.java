@@ -3,6 +3,7 @@ package common;
 import ga.Chromosome;
 import lombok.experimental.UtilityClass;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +21,9 @@ import java.util.function.Predicate;
 public class CommonUtil {
 
     public static final Random random = new Random();
+
+    public final DecimalFormat df = new DecimalFormat("####.00");
+
 
     //返回一个打乱了的数组，原数组不变
     public int[] shuffleIntArray(int[] nums){
@@ -71,6 +75,19 @@ public class CommonUtil {
             res[0] = b;res[1] = a;
         }
         return res;
+    }
+
+    //desc大于0
+    public int minExceptZero(int src, int desc){
+        if (src>desc || src==0){
+            return desc;
+        }
+        return src;
+    }
+
+    //desc大于0
+    public int maxExceptZero(int src, int desc){
+        return Math.max(src,desc);
     }
 
 }

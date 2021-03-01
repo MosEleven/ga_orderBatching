@@ -1,5 +1,6 @@
 package service;
 
+import common.CommonUtil;
 import entity.Batch;
 import entity.Order;
 
@@ -15,8 +16,6 @@ import java.util.List;
  * @date 2021-03-01 12:57
  */
 public class TimeSystem {
-
-    private final DecimalFormat df = new DecimalFormat("####.00");
 
     //系统当前时间
     public static BigDecimal currentTime = BigDecimal.ZERO;
@@ -60,6 +59,6 @@ public class TimeSystem {
         pickFinishTime = pickFinishTime.add(tTotalService);
         tExceptedNextWave = tExceptedNextWave.add(tTotalService);
 
-        System.out.printf("更新系统时间，当前时间：%s；拣选队列完成时间%s；预期下波间隔%s%n",df.format(currentTime),df.format(pickFinishTime),df.format(tExceptedNextWave));
+        System.out.printf("更新系统时间，当前时间：%s；拣选队列完成时间%s；预期下波间隔%s%n", CommonUtil.df.format(currentTime),CommonUtil.df.format(pickFinishTime),CommonUtil.df.format(tExceptedNextWave));
     }
 }
