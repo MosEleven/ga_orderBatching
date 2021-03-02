@@ -1,7 +1,7 @@
 package ga;
 
 import com.google.common.collect.Lists;
-import entity.Order;
+import service.entity.Order;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

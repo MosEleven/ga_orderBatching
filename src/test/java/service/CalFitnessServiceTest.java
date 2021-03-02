@@ -1,10 +1,10 @@
 package service;
 
 import com.alibaba.fastjson.JSON;
-import entity.Area;
-import entity.Order;
-import entity.OrderDetail;
-import entity.Position;
+import service.entity.Area;
+import service.entity.Order;
+import service.entity.OrderDetail;
+import service.entity.Position;
 import org.junit.jupiter.api.Test;
 
 
@@ -93,4 +93,5 @@ class CalFitnessServiceTest {
         System.out.printf("s = %s; sp = %s",s,sp);
 
     }
+
 }

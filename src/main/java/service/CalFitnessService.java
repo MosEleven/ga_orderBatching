@@ -1,11 +1,11 @@
 package service;
 
 import common.CommonUtil;
-import entity.*;
 import ga.GaCalculate;
+import lab.TimeSystem;
+import service.entity.*;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.util.*;
 
 import static service.BaseInfo.*;
@@ -18,6 +18,8 @@ import static service.BaseInfo.*;
  * @date 2021-03-01 12:52
  */
 public class CalFitnessService implements GaCalculate<Order> {
+
+    public BigDecimal pickFinishTime = BigDecimal.ZERO;
 
     //小数输出格式，精确到小数点后2位
 
@@ -146,7 +148,7 @@ public class CalFitnessService implements GaCalculate<Order> {
             tQueue = tQueue.add(batch.getTService());
             for (Order order : batch.getOrderList()) {
                 calOrderTPackage(order);
-                order.setFinalTime(TimeSystem.pickFinishTime.add(tQueue).add(order.getTPackage()));
+                order.setFinalTime(pickFinishTime.add(tQueue).add(order.getTPackage()));
             }
         }
     }
@@ -156,7 +158,7 @@ public class CalFitnessService implements GaCalculate<Order> {
      * @param batch 拣选批次
      * @return 分区信息
      */
-    private Map<Character, Area> divideArea(Batch batch){
+    public Map<Character, Area> divideArea(Batch batch){
         Map<Character, Area> map = new HashMap<>(10);
         for (int i = 0; i < AREA_NUM; i++) {
             char areaName = (char) ('A'+i);
@@ -203,7 +205,7 @@ public class CalFitnessService implements GaCalculate<Order> {
      * @param area 分取拣选信息
      */
     private void calAreaTTravel(Area area){
-        double distance = calDistanceByS(area);
+        double distance = getBestRoute(area);
         area.setTTravel(distance / V_TRAVEL);
     }
 

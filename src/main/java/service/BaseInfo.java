@@ -1,6 +1,6 @@
 package service;
 
-import entity.Position;
+import service.entity.Position;
 
 import java.math.BigDecimal;
 
