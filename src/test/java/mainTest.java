@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import service.CalFitnessService;
 import service.ReceiveOrderService;
+import service.factory.CalServiceFactory;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -19,7 +20,7 @@ public class mainTest {
 
     ReceiveOrderService receiveOrderService = new ReceiveOrderService(new BigDecimal("3600"),new BigDecimal("14400"));
 
-    CalFitnessService calFitnessService = new CalFitnessService();
+    CalFitnessService calFitnessService = CalServiceFactory.buildDefault();
 
     @Test
     void compareRoute(){

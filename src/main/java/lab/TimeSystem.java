@@ -1,12 +1,8 @@
 package lab;
 
-import common.CommonUtil;
-import service.entity.Batch;
-import service.entity.Order;
-import service.CalFitnessService;
-
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * TimeSystem简介
@@ -19,9 +15,13 @@ public class TimeSystem {
 
     //系统当前时间
     private static BigDecimal currentTime = BigDecimal.ZERO;
-
+    private Map<EventKey,EventSource> sourceMap;
+    private Map<EventKey,List<Function<Event,Boolean>>> handlerMap;
+    private static final PriorityQueue<Event> eq = new PriorityQueue<>(Comparator.comparing(Event::getArriveTime));
 
     public TimeSystem() {
+        sourceMap = new HashMap<>();
+        handlerMap = new HashMap<>();
         System.out.println("【时间系统】已启动");
     }
 
@@ -29,14 +29,13 @@ public class TimeSystem {
         return currentTime;
     }
 
-    public static void updateTime(BigDecimal realReceivingTime){
-        currentTime = currentTime.add(realReceivingTime);
+    public static void publishEvent(Event e){
+        if (e == null || e.getKey()==null || e.getArriveTime()==null){
+            throw new IllegalArgumentException("event is lack of args");
+        }
+        eq.add(e);
     }
 
-
-    private Map<EventKey,EventSource> sourceMap;
-    private Map<EventKey,List<EventHandler>> handlerMap;
-    private PriorityQueue<Event> eq = new PriorityQueue<>(Comparator.comparing(Event::getArriveTime));
 
     public void addEventSource(EventSource source){
         EventKey key = source.getEventKey();
@@ -48,7 +47,10 @@ public class TimeSystem {
 
     public void registerHandler(EventHandler handler){
         EventKey key = handler.getEventKey();
-        List<EventHandler> handlers;
+        registerHandler(key,handler::handleEvent);
+    }
+    public void registerHandler(EventKey key,Function<Event,Boolean> handler){
+        List<Function<Event, Boolean>> handlers;
         if ( (handlers=handlerMap.get(key)) == null){
             handlers = new ArrayList<>();
             handlerMap.put(key,handlers);
@@ -56,23 +58,39 @@ public class TimeSystem {
         handlers.add(handler);
     }
 
-    private void processNextEvent(){
-        if (eq.isEmpty()){
-            throw new IllegalArgumentException("ending because there is no event");
+    public void start(){
+        invokeInitSource();
+        while (!eq.isEmpty()){
+            processNextEvent();
         }
+        System.out.println("ending because there is no event");
+    }
+
+    private void invokeInitSource(){
+        for (EventSource source : sourceMap.values()) {
+            Event e = source.getNextEvent();
+            if (e != null){
+                eq.add(e);
+            }
+        }
+    }
+
+    private void processNextEvent(){
         Event e = eq.poll();
-        List<EventHandler> eventHandlers = handlerMap.get(e.getKey());
+        currentTime = e.getArriveTime();
+        List<Function<Event, Boolean>> eventHandlers = handlerMap.get(e.getKey());
         if (eventHandlers == null){
             throw new IllegalArgumentException("no such handler");
         }
-        for (EventHandler eventHandler : eventHandlers) {
-            eventHandler.handleEvent(e);
+        for (Function<Event, Boolean> eventHandler : eventHandlers) {
+            eventHandler.apply(e);
         }
         EventSource eventSource = sourceMap.get(e.getKey());
-        Event nextEvent = eventSource.getNextEvent();
-        if (nextEvent != null){
-            eq.add(nextEvent);
+        if (eventSource != null){
+            Event nextEvent = eventSource.getNextEvent();
+            if (nextEvent != null){
+                eq.add(nextEvent);
+            }
         }
-
     }
 }

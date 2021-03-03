@@ -2,7 +2,6 @@ package service;
 
 import common.CommonUtil;
 import ga.GaCalculate;
-import lab.TimeSystem;
 import service.entity.*;
 
 import java.math.BigDecimal;
@@ -17,7 +16,7 @@ import static service.BaseInfo.*;
  * @author zengxin
  * @date 2021-03-01 12:52
  */
-public class CalFitnessService implements GaCalculate<Order> {
+public abstract class CalFitnessService implements GaCalculate<Order> {
 
     public BigDecimal pickFinishTime = BigDecimal.ZERO;
 
@@ -205,15 +204,17 @@ public class CalFitnessService implements GaCalculate<Order> {
      * @param area 分取拣选信息
      */
     private void calAreaTTravel(Area area){
-        double distance = getBestRoute(area);
+        double distance = calDistance(area);
         area.setTTravel(distance / V_TRAVEL);
     }
 
-    public double getBestRoute(Area area){
+    public abstract double calDistance(Area area);
+
+    public static double getBestRoute(Area area){
         return Math.min(calDistanceByS(area), calDistanceBySPlus(area));
     }
 
-    public double calDistanceByS(Area area){
+    public static double calDistanceByS(Area area){
         int pickedTunnelNum = area.getPickedTunnelNum();
         double distance;
         if (pickedTunnelNum%2 == 0){
@@ -229,7 +230,7 @@ public class CalFitnessService implements GaCalculate<Order> {
      * @param area
      * @return
      */
-    public double calDistanceBySPlus(Area area){
+    public static double calDistanceBySPlus(Area area){
         List<OrderDetail> detailList = area.getDetailList();
         int[][] ts = new int[TUNNEL_NUM][2];
         for (OrderDetail detail : detailList) {
@@ -240,7 +241,7 @@ public class CalFitnessService implements GaCalculate<Order> {
             ts[tunnel][1] = CommonUtil.maxExceptZero(ts[tunnel][1],shelf);
         }
         int maxTunnelNo = area.getMaxTunnelNo();
-        ts[maxTunnelNo][1] = ts[maxTunnelNo][0];
+        ts[maxTunnelNo][0] = ts[maxTunnelNo][1];
         int point = 0;
         int top = SHELF_NUM / 2;
         int distance = 0;
@@ -257,7 +258,7 @@ public class CalFitnessService implements GaCalculate<Order> {
                 }
             }
         }
-        distance += ts[maxTunnelNo][0];
+        distance += point;
         return distance* SHELF_LENGTH + 2* maxTunnelNo *TUNNEL_WIDTH;
     }
 
@@ -283,5 +284,24 @@ public class CalFitnessService implements GaCalculate<Order> {
             tPackage += order.getSkuNum() * V_ADDITION_PACK;
         }
         order.setTPackage(BigDecimal.valueOf(tPackage));
+    }
+
+    public BigDecimal confirmPick(List<Order> orderList){
+        List<Batch> batches = batching(orderList);
+        calTService(batches);
+
+        BigDecimal startTime = BigDecimal.ZERO;
+        for (Batch batch : batches) {
+            batch.setStartTime(pickFinishTime.add(startTime));
+            for (Order order : batch.getOrderList()) {
+                order.setStartTime(batch.getStartTime());
+            }
+            startTime = startTime.add(batch.getTService());
+        }
+
+        BigDecimal tTotalService = batches.stream().map(Batch::getTService).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        pickFinishTime = pickFinishTime.add(tTotalService);
+        return tTotalService;
     }
 }

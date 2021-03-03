@@ -6,6 +6,7 @@ import service.entity.Order;
 import service.entity.OrderDetail;
 import service.entity.Position;
 import org.junit.jupiter.api.Test;
+import service.factory.CalServiceFactory;
 
 
 import java.math.BigDecimal;
@@ -87,7 +88,7 @@ class CalFitnessServiceTest {
         set.add(0);set.add(1);set.add(2);
         area.setPickedTunnelSet(set);
         area.setDetailList(list);
-        CalFitnessService cs = new CalFitnessService();
+        CalFitnessService cs = CalServiceFactory.buildDefault();
         double s = cs.calDistanceByS(area);
         double sp = cs.calDistanceBySPlus(area);
         System.out.printf("s = %s; sp = %s",s,sp);

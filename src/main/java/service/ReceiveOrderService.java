@@ -6,6 +6,7 @@ import service.entity.Batch;
 import service.entity.Order;
 import service.entity.OrderDetail;
 import lab.TimeSystem;
+import service.factory.CalServiceFactory;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -35,7 +36,7 @@ public class ReceiveOrderService {
 
     private BigDecimal endReceivingTime;
 
-    public CalFitnessService calFitnessService = new CalFitnessService();
+    public CalFitnessService calFitnessService = CalServiceFactory.builder().setCalDistanceMethod(CalServiceFactory.CalDistanceMethod.S).build();
 
     public ReceiveOrderService(BigDecimal tExceptedNextWave, BigDecimal endReceivingTime) {
         this.tExceptedNextWave = tExceptedNextWave;
@@ -191,7 +192,6 @@ public class ReceiveOrderService {
     }
 
     private void updateTime(BigDecimal tRealReceiving){
-        TimeSystem.updateTime(tRealReceiving);
 
         if (TimeSystem.getCurrentTime().compareTo(calFitnessService.pickFinishTime) > 0){
             calFitnessService.pickFinishTime = TimeSystem.getCurrentTime();
