@@ -23,7 +23,9 @@ public class GeneAlgorithm<T> {
     //种群大小（即染色体数量）
     private final int populationSize;
 
-    private final double varyRatio = 0.1;
+    private final double varyRatio = 0.3d;
+
+    private final double parentRatio = 0.3d;
 
     //基因排序{1,2...genesLength-1}
     private int[] geneSequence;
@@ -132,12 +134,19 @@ public class GeneAlgorithm<T> {
         fitness(crossResult);
         fitness(varyResult);
 
-        population.addAll(crossResult);
-        population.addAll(varyResult);
+        List<Chromosome> offspring = new ArrayList<>(crossResult.size()+varyResult.size());
+        offspring.addAll(crossResult);
+        offspring.addAll(varyResult);
+        offspring.sort(CommonUtil::chromoComparator);
 
+        int parentRemain = (int) (populationSize * parentRatio);
+        int offspringRemain = populationSize - parentRemain;
         //取分数最高的
+        population = population.subList(population.size()-parentRemain,population.size());
+        population.addAll(offspring.subList(offspring.size()-offspringRemain,offspring.size()));
+
         population.sort(CommonUtil::chromoComparator);
-        population = population.subList(population.size()-populationSize,population.size());
+
     }
 
     //交叉

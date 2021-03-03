@@ -17,10 +17,10 @@ public class BaseInfo {
     public static final int AREA_NUM = 4;
 
     //巷道数量
-    public static final int TUNNEL_NUM = 3;
+    public static final int TUNNEL_NUM = 4;
 
     //每个巷道货位数量
-    public static final int SHELF_NUM = 20;
+    public static final int SHELF_NUM = 24;
 
     //仓库内总sku种类
     public static final int TOTAL_SKU_CATEGORIES = AREA_NUM * TUNNEL_NUM * SHELF_NUM;
@@ -34,14 +34,14 @@ public class BaseInfo {
     //巷道间的宽度
     public static final double TUNNEL_WIDTH = 3.6d;
 
-    //巷道长度
-    public static final double TUNNEL_LENGTH = 11.0d;
-
     //每个货位长度
     public static final double SHELF_LENGTH = 1.1d;
 
+    //巷道长度
+    public static final double TUNNEL_LENGTH = SHELF_NUM * SHELF_LENGTH / 2;
+
     //行走速度
-    public static final double V_TRAVEL = 1.0d;
+    public static final double V_TRAVEL = 0.5d;
 
     //基础拣选时间（秒）
     public static final double V_BASE_PICK = 12.0d;
@@ -53,7 +53,7 @@ public class BaseInfo {
     public static final double V_BASE_PACK = 15.0d;
 
     //找出每件货的时间（秒/件）
-    public static final double V_ADDITION_PACK = 2.0d;
+    public static final double V_ADDITION_PACK = 5.0d;
 
     //货位管理
     private static final Position[] positions;
