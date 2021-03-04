@@ -20,8 +20,8 @@ public class TimeSystem {
     private static final PriorityQueue<Event> eq = new PriorityQueue<>(Comparator.comparing(Event::getArriveTime));
 
     public TimeSystem() {
-        sourceMap = new HashMap<>();
-        handlerMap = new HashMap<>();
+        sourceMap = new EnumMap<>(EventKey.class);
+        handlerMap = new EnumMap<>(EventKey.class);
         System.out.println("【时间系统】已启动");
     }
 
