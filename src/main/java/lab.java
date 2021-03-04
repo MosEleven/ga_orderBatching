@@ -34,4 +34,8 @@ public class lab {
         timeSystem.registerHandler(fixedTwHandler);
         timeSystem.registerHandler(EventKey.END_RECEIVING,fixedTwHandler::whenEndReceiving);
     }
+
+    private static void registerCustomHandler(TimeSystem timeSystem){
+        ReceiveOrderHandler build = ReceiveOrderHandler.getCustomBuilder().build();
+    }
 }

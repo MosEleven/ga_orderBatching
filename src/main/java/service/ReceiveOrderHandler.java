@@ -51,7 +51,7 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
         return new Builder();
     }
 
-    private static class Builder {
+    public static class Builder {
         private ReceiveOrderHandler handler;
 
         private Builder(){
