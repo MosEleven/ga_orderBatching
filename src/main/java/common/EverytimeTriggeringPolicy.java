@@ -9,7 +9,7 @@ import java.io.File;
  * @param <E>
  */
 public class EverytimeTriggeringPolicy<E> extends TriggeringPolicyBase<E> {
-    private static boolean triggeringFlag = true;    //静态全局标识，初始为true
+    private boolean triggeringFlag = true;    //静态全局标识，初始为true
 
     @Override
     public boolean isTriggeringEvent(File file, E whatever) {

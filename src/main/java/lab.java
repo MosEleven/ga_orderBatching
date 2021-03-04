@@ -16,14 +16,22 @@ public class lab {
         OrderArriving orderArriving = new OrderArriving(new BigDecimal("14400"));
         timeSystem.addEventSource(orderArriving);
 
-        ReceiveOrderHandler fixedTwHandler = ReceiveOrderHandler.getFixedTwHandler(50);
-        timeSystem.registerHandler(fixedTwHandler);
-        timeSystem.registerHandler(EventKey.END_RECEIVING,fixedTwHandler::whenEndReceiving);
+        registerFixedTwHandler(timeSystem);
 
+        registerDyTwHandler(timeSystem);
+
+        timeSystem.start();
+    }
+
+    private static void registerDyTwHandler(TimeSystem timeSystem) {
         ReceiveOrderHandler dyTwHandler = ReceiveOrderHandler.getDyTwHandler(new BigDecimal("3600"));
         timeSystem.registerHandler(dyTwHandler);
         timeSystem.registerHandler(EventKey.END_RECEIVING,dyTwHandler::whenEndReceiving);
+    }
 
-        timeSystem.start();
+    private static void registerFixedTwHandler(TimeSystem timeSystem) {
+        ReceiveOrderHandler fixedTwHandler = ReceiveOrderHandler.getFixedTwHandler(50);
+        timeSystem.registerHandler(fixedTwHandler);
+        timeSystem.registerHandler(EventKey.END_RECEIVING,fixedTwHandler::whenEndReceiving);
     }
 }

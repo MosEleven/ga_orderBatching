@@ -6,6 +6,8 @@ import lab.Event;
 import lab.EventHandler;
 import lab.EventKey;
 import lab.TimeSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import service.entity.Order;
 import service.factory.CalServiceFactory;
 
@@ -14,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ReceiveOrderHandler implements EventHandler<Order> {
+
+    private Logger log;
 
     private int maxOrderNum;
 
@@ -47,7 +51,7 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
         return new Builder();
     }
 
-    public static class Builder {
+    private static class Builder {
         private ReceiveOrderHandler handler;
 
         private Builder(){
@@ -74,6 +78,7 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
             handler.singleOrders = new ArrayList<>(handler.maxOrderNum);
             handler.multiOrders = new ArrayList<>(handler.maxOrderNum);
             handler.geneAlgorithm = new GeneAlgorithm<>(1000,handler.calFitnessService);
+            handler.log = LoggerFactory.getLogger(handler.tw.toString());
             return handler;
         }
     }
@@ -89,6 +94,7 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
         this.multiOrders = new ArrayList<>(maxOrderNum);
         this.calFitnessService = CalServiceFactory.buildDefault();
         this.geneAlgorithm = new GeneAlgorithm<>(1000,calFitnessService);
+        this.log = LoggerFactory.getLogger(tw.toString());
     }
 
     private ReceiveOrderHandler(BigDecimal expectedNextWaveTime) {
@@ -103,6 +109,7 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
         this.expectedNextWaveTime = expectedNextWaveTime;
         this.calFitnessService = CalServiceFactory.buildDefault();
         this.geneAlgorithm = new GeneAlgorithm<>(1000,calFitnessService);
+        this.log = LoggerFactory.getLogger(tw.toString());
     }
 
     private ReceiveOrderHandler(){
@@ -149,6 +156,7 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
     }
 
     private void receiveOrder(Order order){
+        log.info("{}: receive order at {}",tw,order.getArriveTime());
         if (order.getSkuNum() == 1){
             singleOrders.add(order);
         }else {

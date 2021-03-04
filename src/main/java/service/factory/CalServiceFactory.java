@@ -12,7 +12,7 @@ public class CalServiceFactory {
     private CalServiceFactory() {}
 
     public static CalFitnessService buildDefault(){
-        return new CalServiceFactory().setCalDistanceMethod(CalDistanceMethod.S).build();
+        return new CalServiceFactory().setCalDistanceMethod(CalDistanceMethod.Best).build();
     }
 
     public static CalServiceFactory builder(){
