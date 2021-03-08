@@ -6,6 +6,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 class GeneAlgorithmTest {
 
@@ -85,5 +90,30 @@ class GeneAlgorithmTest {
         System.out.printf("point1=%s, point2=%s%n",twoPoints[0],twoPoints[1]);
         System.out.println(Arrays.toString(offspring1));
         System.out.println(Arrays.toString(offspring2));
+    }
+
+    @Test
+    void pool(){
+        ExecutorService executorService = Executors.newFixedThreadPool(4);
+        int[] nums = new int[10];
+        for (int i = 0; i < nums.length; i++) {
+            nums[i] = i;
+        }
+        List<Future<Integer>> list = new ArrayList<>(10);
+        for (int n : nums) {
+            list.add(executorService.submit(() -> calExample(n)));
+        }
+        executorService.shutdown();
+        for (int i = 0; i < list.size(); i++) {
+            try {
+                Integer integer = list.get(i).get();
+                System.out.printf("i:%s, n:%s%n",i,integer);
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    private int calExample(int n){
+        return 2*n;
     }
 }

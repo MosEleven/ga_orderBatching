@@ -169,6 +169,7 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
         }
         log.info(report.getSpareTimeReport());
         log.info(calFitnessService.report.getPickReport());
+        geneAlgorithm.shutdown();
         return true;
     }
 
