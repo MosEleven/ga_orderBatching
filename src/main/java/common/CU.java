@@ -2,6 +2,8 @@ package common;
 
 import ga.Chromosome;
 import lombok.experimental.UtilityClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -18,9 +20,11 @@ import java.util.function.Predicate;
  * @date 2021-03-01 12:53
  */
 @UtilityClass
-public class CommonUtil {
+public class CU {
 
     public static final Random random = new Random();
+
+    public static Logger calLog = LoggerFactory.getLogger("Cal");
 
     public final DecimalFormat df = new DecimalFormat("####.00");
 

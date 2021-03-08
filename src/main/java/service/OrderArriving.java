@@ -1,7 +1,7 @@
 package service;
 
 import com.alibaba.fastjson.JSON;
-import common.CommonUtil;
+import common.CU;
 import lab.Event;
 import lab.EventKey;
 import lab.EventSource;
@@ -25,8 +25,8 @@ public class OrderArriving implements EventSource<Order> {
 
     public OrderArriving(BigDecimal endReceivingTime) {
         this.endReceivingTime = endReceivingTime;
-        this.receivingRate = 0.025d;
-        this.maxDetailNum = 100;
+        this.receivingRate = BaseInfo.RECEIVING_RATE;
+        this.maxDetailNum = BaseInfo.MAX_DETAIL_NUM;
 
     }
 
@@ -61,7 +61,7 @@ public class OrderArriving implements EventSource<Order> {
         List<OrderDetail> detailList = new ArrayList<>(skuNum);
         Map<Integer,Integer> detailMap = new HashMap<>();
         for (int i = 0; i < skuNum; i++) {
-            int sku = CommonUtil.random.nextInt(BaseInfo.TOTAL_SKU_CATEGORIES);
+            int sku = CU.random.nextInt(BaseInfo.TOTAL_SKU_CATEGORIES);
             detailMap.put(sku,detailMap.getOrDefault(sku,0)+1);
         }
         detailMap.forEach((sku,num)->detailList.add(OrderDetail.builder().sku(sku).pickNum(num).position(BaseInfo.getPosition(sku)).build()));
@@ -77,14 +77,14 @@ public class OrderArriving implements EventSource<Order> {
         //todo 再校验一下
         //订单75%概率单品,[miu=1; sigma=0.4348]
         double miu = 1.d;
-        double sigma = 0.4348d;
-        double num = sigma * CommonUtil.random.nextGaussian() + miu;
-        while (num<1 || num>maxDetailNum) num = sigma * CommonUtil.random.nextGaussian() + miu;
+        double sigma = BaseInfo.SIGMA;
+        double num = sigma * CU.random.nextGaussian() + miu;
+        while (num<1 || num>maxDetailNum) num = sigma * CU.random.nextGaussian() + miu;
         return (int)Math.round(num);
     }
 
     private boolean randomDepartTime(Order order){
-        int car = CommonUtil.random.nextInt(BaseInfo.CAR_NUM);
+        int car = CU.random.nextInt(BaseInfo.CAR_NUM);
         for (BigDecimal departTime : BaseInfo.getDepartTime(car)) {
             if (departTime.compareTo(order.getArriveTime()) >= 0){
                 order.setDepartTime(departTime);

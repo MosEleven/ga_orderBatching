@@ -1,11 +1,14 @@
 package service;
 
-import common.CommonUtil;
+import common.CU;
 import ga.GaCalculate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import service.entity.*;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static service.BaseInfo.*;
 
@@ -19,6 +22,8 @@ import static service.BaseInfo.*;
 public abstract class CalFitnessService implements GaCalculate<Order> {
 
     public BigDecimal pickFinishTime = BigDecimal.ZERO;
+
+    public Report report = new Report();
 
     //小数输出格式，精确到小数点后2位
 
@@ -56,6 +61,12 @@ public abstract class CalFitnessService implements GaCalculate<Order> {
         return -score;
     }
 
+    private void addReport(BigDecimal tTotalService, BigDecimal tTotalDelay, double base) {
+        report.addTTotalPick(tTotalService);
+        report.addTTotalDelay(tTotalDelay);
+        report.addTTotalDiff(base);
+    }
+
     @Override
     public void debug(List<Order> orderList) {
         List<Batch> batches = batching(orderList);
@@ -75,7 +86,21 @@ public abstract class CalFitnessService implements GaCalculate<Order> {
             base += batch.getAreaList().stream().mapToDouble(a->Math.abs(average-a.getTService())).reduce(0d,Double::sum);
         }
 
-        System.out.printf("拣选时间：%s，延迟时间：%s，差异时间：%s%n", CommonUtil.df.format(tTotalService),CommonUtil.df.format(tTotalDelay),CommonUtil.df.format(base));
+        addReport(tTotalService,tTotalDelay,base);
+        CU.calLog.info("集合共分为{}个批次",batches.size());
+        //System.out.printf("集合共分为%s个批次%n",batches.size());
+        for (int i = 0; i < batches.size(); i++) {
+            CU.calLog.info("批次{}：",i);
+            //System.out.printf("批次%s：",i);
+            int a = 1;
+            for (Area area : batches.get(i).getAreaList()) {
+                CU.calLog.info("区域{}的拣选时间为{}；",a++, CU.df.format(area.getTService()));
+                //System.out.printf("区域%s的拣选时间为%s；",a++,CommonUtil.df.format(area.getTService()));
+            }
+        }
+        CU.calLog.info("汇总：拣选时间：{}，延迟时间：{}，差异时间：{}", CU.df.format(tTotalService), CU.df.format(tTotalDelay), CU.df.format(base));
+        //System.out.printf("%n汇总：%n");
+        //System.out.printf("拣选时间：%s，延迟时间：%s，差异时间：%s%n", CommonUtil.df.format(tTotalService),CommonUtil.df.format(tTotalDelay),CommonUtil.df.format(base));
     }
 
     /**
@@ -237,8 +262,8 @@ public abstract class CalFitnessService implements GaCalculate<Order> {
             Position position = detail.getPosition();
             int tunnel = position.getTunnel();
             int shelf = (position.getShelf()+1)/2;
-            ts[tunnel][0] = CommonUtil.minExceptZero(ts[tunnel][0],shelf);
-            ts[tunnel][1] = CommonUtil.maxExceptZero(ts[tunnel][1],shelf);
+            ts[tunnel][0] = CU.minExceptZero(ts[tunnel][0],shelf);
+            ts[tunnel][1] = CU.maxExceptZero(ts[tunnel][1],shelf);
         }
         int maxTunnelNo = area.getMaxTunnelNo();
         ts[maxTunnelNo][0] = ts[maxTunnelNo][1];
@@ -268,8 +293,10 @@ public abstract class CalFitnessService implements GaCalculate<Order> {
      */
     private void calAreaTPick(Area area){
         double tPick = 0d;
-        for (OrderDetail detail : area.getDetailList()) {
-            tPick += V_BASE_PICK + detail.getPickNum()* V_ADDITION_PICK;
+        Map<Integer, Integer> skuAndPickNum = area.getDetailList().stream()
+                .collect(Collectors.toMap(OrderDetail::getSku, OrderDetail::getPickNum, Integer::sum));
+        for (Integer pickNum : skuAndPickNum.values()) {
+            tPick += V_BASE_PICK + pickNum* V_ADDITION_PICK;
         }
         area.setTPick(tPick);
     }
@@ -287,6 +314,7 @@ public abstract class CalFitnessService implements GaCalculate<Order> {
     }
 
     public BigDecimal confirmPick(List<Order> orderList){
+        debug(orderList);
         List<Batch> batches = batching(orderList);
         calTService(batches);
 

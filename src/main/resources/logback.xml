@@ -44,11 +44,30 @@
         </triggeringPolicy>
     </appender>
 
+    <appender name="FILE_CAL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="common.LoggerNameFilter">
+            <name>Cal</name>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>%msg%n</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+        <file>log/cal/Cal.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>log/cal/Cal%i.log</fileNamePattern>
+        </rollingPolicy>
+        <triggeringPolicy class="common.EverytimeTriggeringPolicy">
+        </triggeringPolicy>
+    </appender>
+
 
 
     <root level="debug">
         <appender-ref ref="FILE_DY" />
         <appender-ref ref="FILE_FXD" />
+        <appender-ref ref="FILE_CAL" />
 <!--        <appender-ref ref="CONSOLE" />-->
     </root>
 </configuration>

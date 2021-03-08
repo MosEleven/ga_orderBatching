@@ -1,7 +1,7 @@
 package ga;
 
 import com.google.common.collect.Lists;
-import common.CommonUtil;
+import common.CU;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ class GeneAlgorithmTest {
         Chromosome c4 = Chromosome.builder().score(-2.5d).build();
         ArrayList<Chromosome> origin = Lists.newArrayList(c1, c2, c3, c4);
         System.out.println(origin);
-        origin.sort(CommonUtil::chromoComparator);
+        origin.sort(CU::chromoComparator);
         System.out.println(origin);
     }
 
@@ -48,11 +48,11 @@ class GeneAlgorithmTest {
         for (int i = 0; i < genesLength; i++) {
             init[i] = i;
         }
-        int[] parent1 = CommonUtil.shuffleIntArray(init);
-        int[] parent2 = CommonUtil.shuffleIntArray(init);
+        int[] parent1 = CU.shuffleIntArray(init);
+        int[] parent2 = CU.shuffleIntArray(init);
 
         //闭区间
-        int[] twoPoints = CommonUtil.randomTwoPoints(genesLength);
+        int[] twoPoints = CU.randomTwoPoints(genesLength);
 
         int[] offspring1 = new int[genesLength];
         int[] offspring2 = new int[genesLength];

@@ -13,6 +13,25 @@ import java.math.BigDecimal;
  */
 public class BaseInfo {
 
+    //********************************************************************************************//
+    //订单生成数据
+
+    public static final double RECEIVING_RATE = 0.2d;
+
+    public static final double SIGMA = 0.4348d;
+
+    public static final int MAX_DETAIL_NUM = 100;
+
+    //********************************************************************************************//
+    //订单分批数据
+
+    public static final int MAX_ORDER_NUM = 250;
+
+    public static final int MIN_ORDER_NUM = 150;
+
+    //********************************************************************************************//
+    //仓库数据
+
     //区域数量
     public static final int AREA_NUM = 4;
 
@@ -29,7 +48,7 @@ public class BaseInfo {
     public static final char START_AREA = 'A';
 
     //每个区域分区时最大拣选数量
-    public static final int THRESHOLD = 10;
+    public static final int THRESHOLD = 25;
 
     //巷道间的宽度
     public static final double TUNNEL_WIDTH = 3.6d;
@@ -58,10 +77,13 @@ public class BaseInfo {
     //货位管理
     private static final Position[] positions;
 
+    //车类
     public static final int CAR_NUM = 4;
 
+    //车次
     public static final int CAR_SHIFT = 4;
 
+    //车辆离开时间表
     public static final BigDecimal[][] departTime;
 
     static {

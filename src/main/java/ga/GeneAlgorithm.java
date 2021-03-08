@@ -1,13 +1,16 @@
 package ga;
 
 
-import common.CommonUtil;
+import common.CU;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class GeneAlgorithm<T> {
+
+    private Logger log = LoggerFactory.getLogger("Cal");
 
     //迭代次数
     private final int iterationNum;
@@ -96,9 +99,12 @@ public class GeneAlgorithm<T> {
         Chromosome bestC = population.get(populationSize - 1);
         List<T> list = bestC.getListFromGenes(dataList);
         //System.out.printf("GA：best score is %s; ",bestC.getScore());
-        System.out.print("GA：");
+
+        log.info("GA: ");
+        //System.out.print("GA：");
         gaCalculate.debug(list);
-        System.out.print("FIFO：");
+        log.info("FIFO: ");
+        //System.out.print("FIFO：");
         gaCalculate.debug(dataList);
     }
 
@@ -107,7 +113,7 @@ public class GeneAlgorithm<T> {
         //打乱订单顺序，生成初始族群
         this.population = new ArrayList<>(populationSize);
         for (int i = 0; i < populationSize; i++) {
-            population.add(Chromosome.builder().genes(CommonUtil.shuffleIntArray(geneSequence)).build());
+            population.add(Chromosome.builder().genes(CU.shuffleIntArray(geneSequence)).build());
         }
     }
 
@@ -120,7 +126,7 @@ public class GeneAlgorithm<T> {
 
     private void fitnessAndSort(){
         fitness(population);
-        population.sort(CommonUtil::chromoComparator);
+        population.sort(CU::chromoComparator);
     }
 
     //生成下一代
@@ -137,7 +143,7 @@ public class GeneAlgorithm<T> {
         List<Chromosome> offspring = new ArrayList<>(crossResult.size()+varyResult.size());
         offspring.addAll(crossResult);
         offspring.addAll(varyResult);
-        offspring.sort(CommonUtil::chromoComparator);
+        offspring.sort(CU::chromoComparator);
 
         int parentRemain = (int) (populationSize * parentRatio);
         int offspringRemain = populationSize - parentRemain;
@@ -145,14 +151,14 @@ public class GeneAlgorithm<T> {
         population = population.subList(population.size()-parentRemain,population.size());
         population.addAll(offspring.subList(offspring.size()-offspringRemain,offspring.size()));
 
-        population.sort(CommonUtil::chromoComparator);
+        population.sort(CU::chromoComparator);
 
     }
 
     //交叉
     private List<Chromosome> crossover(List<Chromosome> selected){
         List<Chromosome> crossResult = new ArrayList<>(populationSize);
-        int[] pairs = CommonUtil.shuffleIntArray(chromoSequence);
+        int[] pairs = CU.shuffleIntArray(chromoSequence);
         for (int i = 0; i < populationSize; i += 2) {
             Chromosome c1 = selected.get(pairs[i]);
             Chromosome c2 = selected.get(pairs[i+1]);
@@ -200,9 +206,9 @@ public class GeneAlgorithm<T> {
 
     //获取随机的两个点，且不能是一整段
     private int[] getTwoPoints(int n){
-        int[] twoPoints = CommonUtil.randomTwoPoints(n);
+        int[] twoPoints = CU.randomTwoPoints(n);
         while (twoPoints[0]==0 && twoPoints[1]==n){
-            twoPoints = CommonUtil.randomTwoPoints(n);
+            twoPoints = CU.randomTwoPoints(n);
         }
         return twoPoints;
     }
@@ -212,12 +218,12 @@ public class GeneAlgorithm<T> {
         int varyNum = (int) (populationSize * varyRatio);
         List<Chromosome> varyResult = new ArrayList<>(varyNum);
 
-        int[] select = CommonUtil.randomSelect(chromoSequence, varyNum);
+        int[] select = CU.randomSelect(chromoSequence, varyNum);
         for (int n : select) {
             Chromosome chromo = population.get(n).cloneGenes();
             int[] genes = chromo.getGenes();
-            int[] twoPoints = CommonUtil.randomTwoPoints(genesLength);
-            CommonUtil.swapIntArray(genes,twoPoints[0],twoPoints[1]);
+            int[] twoPoints = CU.randomTwoPoints(genesLength);
+            CU.swapIntArray(genes,twoPoints[0],twoPoints[1]);
             varyResult.add(chromo);
         }
         return varyResult;
@@ -228,7 +234,7 @@ public class GeneAlgorithm<T> {
         List<Chromosome> selected = new ArrayList<>(populationSize);
         int total = populationSize * (populationSize + 1) / 2;
         for (int i = 0; i < populationSize; i++) {
-            int n = selectTable[CommonUtil.random.nextInt(total)];
+            int n = selectTable[CU.random.nextInt(total)];
             selected.add(population.get(n));
         }
         return selected;

@@ -1,6 +1,6 @@
 package service;
 
-import common.CommonUtil;
+import common.CU;
 import ga.GeneAlgorithm;
 import lab.Event;
 import lab.EventHandler;
@@ -9,6 +9,7 @@ import lab.TimeSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.entity.Order;
+import service.entity.Report;
 import service.factory.CalServiceFactory;
 
 import java.math.BigDecimal;
@@ -34,6 +35,12 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
     private BigDecimal expectedNextWaveTime;
 
     private BigDecimal tTotalPick;
+
+    private BigDecimal enterTime;
+
+    private PickType pickType = PickType.GA;
+
+    private Report report = new Report();
 
     private CalFitnessService calFitnessService;
 
@@ -70,6 +77,14 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
             handler.tw = tw;
             return this;
         }
+        public Builder expectedNextWaveTime(BigDecimal expectedNextWaveTime){
+            handler.expectedNextWaveTime = expectedNextWaveTime;
+            return this;
+        }
+        public Builder pickType(PickType pickType){
+            handler.pickType = pickType;
+            return this;
+        }
         public Builder calFitnessService(CalFitnessService calFitnessService){
             handler.calFitnessService = calFitnessService;
             return this;
@@ -98,8 +113,8 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
     }
 
     private ReceiveOrderHandler(BigDecimal expectedNextWaveTime) {
-        this.maxOrderNum = 50;
-        this.minOrderNum = 30;
+        this.maxOrderNum = BaseInfo.MAX_ORDER_NUM;
+        this.minOrderNum = BaseInfo.MIN_ORDER_NUM;
         this.waveNo = 1;
         this.tTotalPick = BigDecimal.ZERO;
         this.singleOrders = new ArrayList<>(maxOrderNum);
@@ -113,8 +128,8 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
     }
 
     private ReceiveOrderHandler(){
-        this.maxOrderNum = 50;
-        this.minOrderNum = 30;
+        this.maxOrderNum = BaseInfo.MAX_ORDER_NUM;
+        this.minOrderNum = BaseInfo.MIN_ORDER_NUM;
         this.waveNo = 1;
         this.tTotalPick = BigDecimal.ZERO;
 
@@ -152,11 +167,13 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
         if (picked){
             whenPicked();
         }
+        log.info(report.getSpareTimeReport());
+        log.info(calFitnessService.report.getPickReport());
         return true;
     }
 
     private void receiveOrder(Order order){
-        log.info("{}: receive order at {}",tw,order.getArriveTime());
+        //log.info("{}: receive order at {}",tw,order.getArriveTime());
         if (order.getSkuNum() == 1){
             singleOrders.add(order);
         }else {
@@ -176,6 +193,7 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
     }
 
     private void tryPick(){
+        enterTime = TimeSystem.getCurrentTime();
         switch (tw){
             case Fixed:
                 tryFixedTwPick();
@@ -217,7 +235,8 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
         }
 
         if (picked){
-            expectedNextWaveTime = TimeSystem.getCurrentTime().add(tTotalPick);
+            //expectedNextWaveTime = TimeSystem.getCurrentTime().add(tTotalPick);
+            expectedNextWaveTime = calFitnessService.pickFinishTime;
             tTotalPick = BigDecimal.ZERO;
             whenPicked();
         }
@@ -226,10 +245,14 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
     private void whenPicked() {
         System.out.printf("tw:%s, wave:%s, ",tw,waveNo);
         waveNo++;
+        log.info("cur:{}, pickQue:{}, next:{}",
+                CU.df.format(TimeSystem.getCurrentTime()),
+                CU.df.format(calFitnessService.pickFinishTime),
+                CU.df.format(expectedNextWaveTime));
         System.out.printf("cur:%s, pickQue:%s, next:%s%n",
-                CommonUtil.df.format(TimeSystem.getCurrentTime()),
-                CommonUtil.df.format(calFitnessService.pickFinishTime),
-                CommonUtil.df.format(expectedNextWaveTime));
+                CU.df.format(TimeSystem.getCurrentTime()),
+                CU.df.format(calFitnessService.pickFinishTime),
+                CU.df.format(expectedNextWaveTime));
     }
 
     private void pickMultiOrders() {
@@ -243,6 +266,12 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
     }
 
     private void pick(List<Order> orderList){
+        BigDecimal spare = TimeSystem.getCurrentTime().subtract(calFitnessService.pickFinishTime);
+        if (spare.compareTo(BigDecimal.ZERO)>=0){
+            report.addPSpareTime(spare);
+        }else report.addNSpareTime(spare);
+        log.info("wave: {}",waveNo);
+        log.info("拣选系统空闲{}秒", CU.df.format(spare));
         if (isOverPickFinishTime()){
             calFitnessService.pickFinishTime = TimeSystem.getCurrentTime();
         }
@@ -250,10 +279,38 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
             order.setEnterTime(TimeSystem.getCurrentTime());
         }
 
-        geneAlgorithm.loadData(orderList);
-        List<Order> sortedOrder = geneAlgorithm.ga();
+        String type = orderList.get(0).getSkuNum()==1? "单品":"多品";
+        System.out.printf("%s: ",type);
 
-        BigDecimal tService = calFitnessService.confirmPick(sortedOrder);
+        BigDecimal tService = way2Pick(orderList);
+
+        System.out.println("总拣选时间为：" + tService);
         tTotalPick = tTotalPick.add(tService);
     }
+    public enum PickType{
+        GA,FIFO
+    }
+
+    private BigDecimal way2Pick(List<Order> orderList){
+        BigDecimal tService;
+        switch (pickType){
+            case GA:
+                tService = pickByGA(orderList);break;
+            case FIFO:
+                tService = pickByFIFO(orderList);break;
+            default:
+                throw new IllegalArgumentException("no such pick type");
+        }
+        return tService;
+    }
+
+    private BigDecimal pickByGA(List<Order> orderList){
+        geneAlgorithm.loadData(orderList);
+        List<Order> sortedOrder = geneAlgorithm.ga();
+        return calFitnessService.confirmPick(sortedOrder);
+    }
+    private BigDecimal pickByFIFO(List<Order> orderList){
+        return calFitnessService.confirmPick(orderList);
+    }
+
 }
