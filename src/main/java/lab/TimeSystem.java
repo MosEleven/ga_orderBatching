@@ -17,9 +17,11 @@ public class TimeSystem {
     private static BigDecimal currentTime = BigDecimal.ZERO;
     private Map<EventKey,EventSource> sourceMap;
     private Map<EventKey,List<Function<Event,Boolean>>> handlerMap;
+    private final Long systemStartTime;
     private static final PriorityQueue<Event> eq = new PriorityQueue<>(Comparator.comparing(Event::getArriveTime));
 
     public TimeSystem() {
+        systemStartTime = System.currentTimeMillis();
         sourceMap = new EnumMap<>(EventKey.class);
         handlerMap = new EnumMap<>(EventKey.class);
         System.out.println("【时间系统】已启动");
@@ -63,7 +65,9 @@ public class TimeSystem {
         while (!eq.isEmpty()){
             processNextEvent();
         }
+        Long systemEndTime = System.currentTimeMillis();
         System.out.println("ending because there is no event");
+        System.out.println("duration: "+ (systemEndTime -systemStartTime));
     }
 
     private void invokeInitSource(){

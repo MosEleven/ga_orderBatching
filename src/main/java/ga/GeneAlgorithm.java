@@ -6,6 +6,10 @@ import common.CommonUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class GeneAlgorithm<T> {
 
@@ -37,6 +41,8 @@ public class GeneAlgorithm<T> {
     private final int[] selectTable;
 
     private final GaCalculate<T> gaCalculate;
+
+    private final ExecutorService pool = Executors.newFixedThreadPool(4);
 
     public GeneAlgorithm(int iterationNum, GaCalculate<T> gaCalculate) {
         this(iterationNum,100,gaCalculate);
@@ -113,8 +119,17 @@ public class GeneAlgorithm<T> {
 
     //适应度计算函数
     private void fitness(List<Chromosome> chromosomes){
+        List<Future<Double>> scores = new ArrayList<>(chromosomes.size());
         for (Chromosome chromosome : chromosomes) {
-            chromosome.setScore(gaCalculate.calFitness(chromosome.getListFromGenes(dataList)));
+            scores.add(pool.submit(() -> gaCalculate.calFitness(chromosome.getListFromGenes(dataList))));
+            //chromosome.setScore(gaCalculate.calFitness(chromosome.getListFromGenes(dataList)));
+        }
+        for (int i = 0; i < scores.size(); i++) {
+            try {
+                chromosomes.get(i).setScore(scores.get(i).get());
+            } catch (InterruptedException | ExecutionException e) {
+                System.out.println(" thread pool meet some problem");
+            }
         }
     }
 

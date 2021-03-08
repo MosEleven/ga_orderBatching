@@ -18,7 +18,7 @@ public class lab {
 
         registerFixedTwHandler(timeSystem);
 
-        registerDyTwHandler(timeSystem);
+        //registerDyTwHandler(timeSystem);
 
         timeSystem.start();
     }
