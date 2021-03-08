@@ -152,6 +152,7 @@ public class ReceiveOrderHandler implements EventHandler<Order> {
         if (picked){
             whenPicked();
         }
+        geneAlgorithm.shutdown();
         return true;
     }
 

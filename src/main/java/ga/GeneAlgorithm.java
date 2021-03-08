@@ -249,4 +249,8 @@ public class GeneAlgorithm<T> {
         return selected;
     }
 
+    public void shutdown(){
+        pool.shutdownNow();
+    }
+
 }
