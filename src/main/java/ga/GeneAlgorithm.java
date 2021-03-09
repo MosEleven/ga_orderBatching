@@ -126,10 +126,18 @@ public class GeneAlgorithm<T> {
 
     //适应度计算函数
     private void fitness(List<Chromosome> chromosomes){
+        //fitnessNormal(chromosomes);
+        fitnessViaPool(chromosomes);
+    }
+    private void fitnessNormal(List<Chromosome> chromosomes){
+        for (Chromosome chromosome : chromosomes) {
+            chromosome.setScore(gaCalculate.calFitness(chromosome.getListFromGenes(dataList)));
+        }
+    }
+    private void fitnessViaPool(List<Chromosome> chromosomes){
         List<Future<Double>> scores = new ArrayList<>(chromosomes.size());
         for (Chromosome chromosome : chromosomes) {
             scores.add(pool.submit(() -> gaCalculate.calFitness(chromosome.getListFromGenes(dataList))));
-            //chromosome.setScore(gaCalculate.calFitness(chromosome.getListFromGenes(dataList)));
         }
         for (int i = 0; i < scores.size(); i++) {
             try {
